@@ -7,10 +7,10 @@ export default defineConfig({
   name: 'default',
   title: 'karlduponchel',
 
-  projectId: 'zim7ztke',
-  dataset: 'portfolio',
+  projectId: process.env.SANITY_STUDIO_PROJECT_ID!,
+  dataset: process.env.SANITY_STUDIO_DATASET || 'portfolio',
 
-  plugins: [structureTool(), visionTool()],
+  plugins: [structureTool({}), visionTool()],
 
   schema: {
     types: schemaTypes,
