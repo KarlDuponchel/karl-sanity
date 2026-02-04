@@ -39,4 +39,4 @@ EXPOSE 3333
 
 # Start the Sanity Studio
 # Listen on all interfaces (0.0.0.0) for Docker compatibility
-CMD ["npm", "start", "--", "--host", "0.0.0.0"]
+CMD ["sh", "-c", "npm start -- --host 0.0.0.0"]
