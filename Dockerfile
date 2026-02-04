@@ -24,13 +24,15 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install production dependencies only
-RUN npm ci --omit=dev || npm install --omit=dev
+# Install all dependencies (Sanity Studio needs them at runtime)
+RUN npm ci || npm install
 
-# Copy built files from builder
+# Copy built files and source files from builder
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/sanity.config.ts ./
 COPY --from=builder /app/sanity.cli.ts ./
+COPY --from=builder /app/schemaTypes ./schemaTypes
+COPY --from=builder /app/static ./static
 
 # Expose port 3333 (default Sanity Studio port)
 EXPOSE 3333
