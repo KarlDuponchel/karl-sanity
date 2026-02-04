@@ -38,4 +38,5 @@ COPY --from=builder /app/static ./static
 EXPOSE 3333
 
 # Start the Sanity Studio
-CMD ["npm", "start"]
+# Listen on all interfaces (0.0.0.0) for Docker compatibility
+CMD ["npm", "start", "--", "--host", "0.0.0.0"]

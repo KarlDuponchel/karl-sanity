@@ -137,7 +137,7 @@ Configuration CLI :
 - **Build** : Docker multi-stage
 
 ### Fichiers de déploiement
-- [Dockerfile](Dockerfile) - Build optimisé multi-stage avec fallback npm install
+- [Dockerfile](Dockerfile) - Build multi-stage avec toutes les dépendances (Sanity nécessite TypeScript au runtime)
 - [.dockerignore](.dockerignore) - Exclusions (node_modules, .git, etc.)
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Guide complet de déploiement
 

@@ -178,12 +178,14 @@ git push
 Le Dockerfile utilise une stratégie de build multi-étapes :
 
 1. **Build stage** : Installation des dépendances et build du Studio
-2. **Production stage** : Image légère avec seulement les fichiers nécessaires à l'exécution
+2. **Production stage** : Installation des dépendances et copie des fichiers nécessaires
 
-Cela optimise :
-- La taille de l'image finale
-- Le temps de démarrage
-- La sécurité (moins de dépendances en production)
+**Note** : Contrairement à d'autres applications, Sanity Studio nécessite toutes ses dépendances (y compris TypeScript) au runtime, car il lit les fichiers de configuration TypeScript lors du démarrage. L'image de production contient donc :
+- Toutes les dépendances npm
+- Le build (`dist/`)
+- Les fichiers de configuration (`sanity.config.ts`, `sanity.cli.ts`)
+- Les schémas (`schemaTypes/`)
+- Les fichiers statiques (`static/`)
 
 ## Sécurité
 
