@@ -13,7 +13,15 @@ RUN npm ci || npm install
 # Copy source files
 COPY . .
 
-# Build the Sanity Studio
+# Accept build arguments for Sanity configuration
+ARG SANITY_STUDIO_PROJECT_ID
+ARG SANITY_STUDIO_DATASET=portfolio
+
+# Set them as environment variables for the build
+ENV SANITY_STUDIO_PROJECT_ID=$SANITY_STUDIO_PROJECT_ID
+ENV SANITY_STUDIO_DATASET=$SANITY_STUDIO_DATASET
+
+# Build the Sanity Studio with environment variables
 RUN npm run build
 
 # Production stage - Serve static files
