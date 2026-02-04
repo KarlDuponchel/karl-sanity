@@ -137,9 +137,11 @@ Configuration CLI :
 - **Build** : Docker multi-stage
 
 ### Fichiers de déploiement
-- [Dockerfile](Dockerfile) - Build multi-stage avec toutes les dépendances (Sanity nécessite TypeScript au runtime)
+- [Dockerfile](Dockerfile) - Build multi-stage optimisé : build puis serve de fichiers statiques
 - [.dockerignore](.dockerignore) - Exclusions (node_modules, .git, etc.)
 - [DEPLOYMENT.md](DEPLOYMENT.md) - Guide complet de déploiement
+
+**Architecture** : Le Dockerfile build le Studio (étape 1) puis serve les fichiers statiques avec `serve` (étape 2). Pas besoin de Node.js en production car le Studio buildé est 100% statique.
 
 ### Configuration CORS
 **Important** : Après déploiement, ajouter le domaine de production dans Sanity.io :

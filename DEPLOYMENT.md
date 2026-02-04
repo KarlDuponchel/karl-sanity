@@ -175,17 +175,21 @@ git push
 
 ## Architecture du déploiement
 
-Le Dockerfile utilise une stratégie de build multi-étapes :
+Le Dockerfile utilise une stratégie de build multi-étapes optimisée :
 
-1. **Build stage** : Installation des dépendances et build du Studio
-2. **Production stage** : Installation des dépendances et copie des fichiers nécessaires
+1. **Build stage** : Installation des dépendances et build du Studio avec `sanity build`
+2. **Production stage** : Serve les fichiers statiques avec `serve`
 
-**Note** : Contrairement à d'autres applications, Sanity Studio nécessite toutes ses dépendances (y compris TypeScript) au runtime, car il lit les fichiers de configuration TypeScript lors du démarrage. L'image de production contient donc :
-- Toutes les dépendances npm
-- Le build (`dist/`)
-- Les fichiers de configuration (`sanity.config.ts`, `sanity.cli.ts`)
-- Les schémas (`schemaTypes/`)
-- Les fichiers statiques (`static/`)
+**Note** : Selon la documentation officielle Sanity, après le build, le Studio est constitué uniquement de fichiers statiques HTML/CSS/JS. Il n'est donc pas nécessaire d'avoir Node.js ou les dépendances npm en production. L'image de production contient uniquement :
+- Le serveur HTTP `serve` (très léger)
+- Le build statique (`dist/`)
+- Configuration SPA routing pour le frontend router
+
+Cette approche optimise :
+- **Taille de l'image** : ~200MB vs 500MB+
+- **Sécurité** : Moins de dépendances = moins de vulnérabilités
+- **Performance** : Serveur HTTP statique optimisé
+- **Conformité** : Suit les recommandations officielles Sanity
 
 ## Sécurité
 

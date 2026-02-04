@@ -16,27 +16,19 @@ COPY . .
 # Build the Sanity Studio
 RUN npm run build
 
-# Production stage
+# Production stage - Serve static files
 FROM node:22-alpine
 
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Install serve for serving static files
+RUN npm install -g serve
 
-# Install all dependencies (Sanity Studio needs them at runtime)
-RUN npm ci || npm install
-
-# Copy built files and source files from builder
+# Copy only the built static files from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/sanity.config.ts ./
-COPY --from=builder /app/sanity.cli.ts ./
-COPY --from=builder /app/schemaTypes ./schemaTypes
-COPY --from=builder /app/static ./static
 
 # Expose port 3333 (default Sanity Studio port)
 EXPOSE 3333
 
-# Start the Sanity Studio
-# Listen on all interfaces (0.0.0.0) for Docker compatibility
-CMD ["sh", "-c", "npm start -- --host 0.0.0.0"]
+# Serve the static files with SPA routing support
+CMD ["serve", "-s", "dist", "-l", "3333"]
