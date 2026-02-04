@@ -1,171 +1,257 @@
-# Guide de déploiement Sanity Studio sur VPS via Dokploy
+# Spécifications du projet - Karl Duponchel Portfolio CMS
 
-Ce guide vous accompagne pas à pas pour déployer votre Sanity Studio sur votre VPS en utilisant Dokploy.
+> Document de référence pour Claude Code. Contient toutes les informations essentielles sur le projet pour une prise en main rapide.
 
-## Prérequis
+## Vue d'ensemble
 
-- Un VPS avec Dokploy installé
-- Un compte Sanity.io avec un projet créé
-- Git installé sur votre machine locale
-- Un dépôt Git (GitHub, GitLab, Bitbucket, etc.)
+**Type** : Sanity Studio (CMS headless)
+**Objectif** : Backend de gestion de contenu pour le portfolio Karl Duponchel
+**Dataset** : `portfolio`
+**Version Sanity** : 5.6.0
+**Langage** : TypeScript
+**Framework UI** : React 19
 
-## Configuration du projet
+Ce projet est une instance Sanity Studio configurée pour gérer le contenu d'un blog/portfolio. Il s'agit d'un CMS headless qui expose une API pour être consommée par un frontend (à développer séparément).
 
-### 1. Variables d'environnement nécessaires
+## Technologies utilisées
 
-Votre Sanity Studio nécessite les variables d'environnement suivantes :
+### Core
+- **Sanity Studio** v5.6.0 - Interface de gestion de contenu
+- **React** v19.1 - Framework UI
+- **TypeScript** v5.8 - Langage de développement
+- **Node.js** v22 - Runtime (pour production)
 
-- `SANITY_STUDIO_PROJECT_ID` : L'ID de votre projet Sanity (trouvable dans votre dashboard Sanity)
-- `SANITY_STUDIO_DATASET` : Le nom de votre dataset (par défaut : `portfolio`)
+### Outils Sanity
+- `@sanity/vision` - Outil de requêtage GROQ intégré au Studio
+- `structureTool` - Outil de navigation dans la structure de contenu
 
-Pour obtenir votre Project ID :
-1. Connectez-vous à [sanity.io/manage](https://sanity.io/manage)
-2. Sélectionnez votre projet
-3. Copiez le Project ID visible dans l'URL ou dans les paramètres du projet
+### Styling
+- **styled-components** v6.1.18 - CSS-in-JS
 
-### 2. Structure des fichiers de déploiement
+### Dev Tools
+- **ESLint** v9.28 - Linter
+- **Prettier** v3.5 - Formatage de code
 
-Le projet contient maintenant :
-- `Dockerfile` : Configuration Docker pour le build et l'exécution
-- `.dockerignore` : Fichiers à exclure du build Docker
-- `.env.example` : Template des variables d'environnement
+## Structure du projet
 
-## Déploiement sur Dokploy
+```
+karl-sanity/
+├── schemaTypes/           # Définitions des types de contenu
+│   ├── blog/
+│   │   ├── post.ts       # Schema des articles de blog
+│   │   ├── author.ts     # Schema des auteurs
+│   │   └── category.ts   # Schema des catégories
+│   └── index.ts          # Export des schemas
+├── static/               # Fichiers statiques
+├── sanity.config.ts      # Configuration principale du Studio
+├── sanity.cli.ts         # Configuration CLI
+├── Dockerfile            # Configuration Docker pour déploiement
+├── .dockerignore         # Exclusions Docker
+├── .env.example          # Template variables d'environnement
+├── package.json          # Dépendances et scripts
+└── tsconfig.json         # Configuration TypeScript
+```
 
-### Étape 1 : Préparer votre dépôt Git
+## Modèles de contenu (Schemas)
 
-1. Committez tous les nouveaux fichiers créés :
+### 1. Post (Article de blog)
+**Type** : `post`
+**Champs** :
+- `title` (string, requis) - Titre de l'article
+- `slug` (slug, requis) - URL-friendly identifier (auto-généré depuis title)
+- `author` (reference → author) - Référence à un auteur
+- `coverImage` (image avec hotspot) - Image de couverture avec texte alternatif
+- `category` (reference → category) - Référence à une catégorie
+- `publishedAt` (datetime) - Date de publication (auto-initialisée)
+- `excerpt` (text, max 200 chars) - Résumé de l'article
+- `body` (array) - Contenu riche (blocs de texte + images)
+- `tags` (array of strings) - Tags libres
+- `featured` (boolean) - Marqueur "à la une"
+
+**Preview** : Affiche le titre, l'auteur et l'image de couverture
+
+### 2. Author (Auteur)
+**Type** : `author`
+À documenter (lire le fichier si besoin de détails)
+
+### 3. Category (Catégorie)
+**Type** : `category`
+À documenter (lire le fichier si besoin de détails)
+
+### Évolutions prévues
+- Schémas e-commerce (commentaire dans [schemaTypes/index.ts](schemaTypes/index.ts:10))
+
+## Variables d'environnement
+
+### Requises
 ```bash
-git add Dockerfile .dockerignore CLAUDE.md
-git commit -m "feat: add Docker configuration for Dokploy deployment"
-git push origin main
+SANITY_STUDIO_PROJECT_ID=your_project_id    # ID du projet Sanity
+SANITY_STUDIO_DATASET=portfolio             # Nom du dataset (défaut: portfolio)
 ```
 
-### Étape 2 : Créer l'application dans Dokploy
+### Où les trouver
+- **Project ID** : [sanity.io/manage](https://sanity.io/manage) → Sélectionner le projet → visible dans l'URL ou les paramètres
 
-1. Connectez-vous à votre interface Dokploy (généralement `https://votre-domaine.com:3000`)
+### Fichiers
+- `.env.example` - Template à copier en `.env` pour le développement local
+- En production (Dokploy) : définir dans l'interface de configuration
 
-2. Créez un nouveau projet ou sélectionnez un projet existant
+## Scripts npm disponibles
 
-3. Cliquez sur "Create Application"
-
-4. Configurez l'application :
-   - **Name** : `sanity-studio` (ou le nom de votre choix)
-   - **Source** : Sélectionnez "Git"
-   - **Repository** : Connectez et sélectionnez votre dépôt Git
-   - **Branch** : `main` (ou votre branche principale)
-   - **Build Type** : Sélectionnez "Dockerfile"
-
-### Étape 3 : Configuration des variables d'environnement
-
-Dans l'onglet "Environment" de votre application Dokploy :
-
-1. Ajoutez les variables suivantes :
-```
-SANITY_STUDIO_PROJECT_ID=votre_project_id
-SANITY_STUDIO_DATASET=portfolio
+```bash
+npm run dev              # Lance le Studio en mode développement (port 3333)
+npm run start            # Lance le Studio en mode production
+npm run build            # Build le Studio pour production
+npm run deploy           # Déploie le Studio sur Sanity Cloud
+npm run deploy-graphql   # Déploie l'API GraphQL sur Sanity
 ```
 
-2. Remplacez `votre_project_id` par votre véritable Project ID Sanity
+## Configuration
 
-### Étape 4 : Configuration du domaine et du port
+### sanity.config.ts
+Configuration principale du Studio :
+- Project ID et dataset lus depuis les variables d'environnement
+- Plugins activés : `structureTool`, `visionTool`
+- Schemas importés depuis [schemaTypes/index.ts](schemaTypes/index.ts)
 
-1. Dans l'onglet "Domains" :
-   - Ajoutez votre domaine (ex: `studio.votre-domaine.com`)
-   - Dokploy configurera automatiquement SSL via Let's Encrypt
+### sanity.cli.ts
+Configuration CLI :
+- Auto-updates activé pour le Studio
+- Configuration API (project ID, dataset)
 
-2. Dans l'onglet "Settings" :
-   - Port : `3333` (port par défaut de Sanity Studio)
+### Prettier
+```json
+{
+  "semi": false,
+  "printWidth": 100,
+  "bracketSpacing": false,
+  "singleQuote": true
+}
+```
 
-### Étape 5 : Déployer l'application
+## Déploiement
 
-1. Cliquez sur "Deploy" dans l'interface Dokploy
+### Environnement cible
+- **Plateforme** : Dokploy (sur VPS)
+- **Port** : 3333 (port par défaut Sanity Studio)
+- **Build** : Docker multi-stage
 
-2. Suivez les logs de build en temps réel
+### Fichiers de déploiement
+- [Dockerfile](Dockerfile) - Build optimisé multi-stage avec fallback npm install
+- [.dockerignore](.dockerignore) - Exclusions (node_modules, .git, etc.)
+- [DEPLOYMENT.md](DEPLOYMENT.md) - Guide complet de déploiement
 
-3. Une fois le déploiement terminé, votre Sanity Studio sera accessible via votre domaine
+### Configuration CORS
+**Important** : Après déploiement, ajouter le domaine de production dans Sanity.io :
+- [sanity.io/manage](https://sanity.io/manage) → API → CORS Origins
+- Ajouter `https://studio.votre-domaine.com` avec "Allow credentials"
 
-## Vérification du déploiement
+## Points d'attention
 
-1. Accédez à votre domaine (ex: `https://studio.votre-domaine.com`)
+### 1. Package-lock.json
+Le fichier `package-lock.json` doit rester synchronisé avec `package.json`. Si des erreurs `npm ci` surviennent lors du build Docker :
+```bash
+rm package-lock.json && npm install
+git add package-lock.json
+git commit -m "fix: regenerate package-lock.json"
+```
 
-2. Vous devriez voir l'interface de connexion Sanity Studio
+Le Dockerfile inclut un fallback (`npm ci || npm install`) mais un lockfile propre est préférable.
 
-3. Connectez-vous avec vos identifiants Sanity.io
+### 2. Version de Node
+- Développement : version installée localement
+- Production Docker : Node 22 Alpine (voir [Dockerfile](Dockerfile:2))
 
-## Configuration CORS dans Sanity
+### 3. Auto-updates
+Le Studio est configuré avec auto-updates activé ([sanity.cli.ts](sanity.cli.ts:13)). Sanity peut mettre à jour automatiquement certaines dépendances.
 
-Pour que votre Studio fonctionne correctement, vous devez autoriser votre domaine dans les paramètres CORS de Sanity :
+### 4. Dataset
+Le dataset par défaut est `portfolio`. Si vous créez des environnements multiples (staging, prod), utilisez des datasets différents.
 
-1. Allez sur [sanity.io/manage](https://sanity.io/manage)
+## Workflows de développement
 
-2. Sélectionnez votre projet
+### Développement local
+```bash
+# Première installation
+npm install
 
-3. Dans "API" → "CORS Origins"
+# Configurer les variables d'environnement
+cp .env.example .env
+# Éditer .env avec votre PROJECT_ID
 
-4. Ajoutez votre domaine :
-   - Origin : `https://studio.votre-domaine.com`
-   - Cochez "Allow credentials"
+# Lancer le Studio
+npm run dev
 
-## Mises à jour automatiques
+# Accéder au Studio
+# http://localhost:3333
+```
 
-Dokploy peut être configuré pour déployer automatiquement à chaque push :
+### Ajouter un nouveau type de contenu
+1. Créer un nouveau fichier dans [schemaTypes/](schemaTypes/) (ou sous-dossier)
+2. Définir le schema avec `defineType()` et `defineField()`
+3. Importer et ajouter dans [schemaTypes/index.ts](schemaTypes/index.ts)
+4. Le Studio se rechargera automatiquement
 
-1. Dans les paramètres de votre application Dokploy
+### Déployer
+Voir le guide complet : [DEPLOYMENT.md](DEPLOYMENT.md)
 
-2. Activez "Auto Deploy" pour la branche `main`
+## Intégration API
 
-3. À chaque push sur main, Dokploy reconstruira et redéploiera automatiquement
+### Consommer le contenu (frontend)
+Le Studio expose les données via l'API Sanity. Pour les consommer depuis un frontend :
 
-## Commandes utiles
+```typescript
+// Exemple de requête GROQ
+const query = `*[_type == "post" && featured == true]{
+  title,
+  slug,
+  excerpt,
+  coverImage,
+  author->{name},
+  category->{title}
+}`;
+```
 
-### Redémarrer l'application
-Via l'interface Dokploy : Bouton "Restart"
+### Outils disponibles
+- **Vision Tool** : Intégré au Studio pour tester les requêtes GROQ
+- **GraphQL API** : Peut être déployé avec `npm run deploy-graphql`
+- **Client Sanity** : Utiliser `@sanity/client` dans le frontend
 
-### Voir les logs
-Via l'interface Dokploy : Onglet "Logs"
+## Liens utiles
 
-### Rebuild complet
-Via l'interface Dokploy : Bouton "Rebuild"
+### Documentation
+- [Sanity Studio Docs](https://www.sanity.io/docs)
+- [GROQ Query Language](https://www.sanity.io/docs/groq)
+- [Schema Types Reference](https://www.sanity.io/docs/schema-types)
+- [Content Modeling](https://www.sanity.io/docs/content-modeling)
 
-## Dépannage
+### Communauté
+- [Sanity Community Slack](https://slack.sanity.io)
+- [Sanity Exchange](https://www.sanity.io/exchange) - Plugins et starters
 
-### Le Studio ne se charge pas
-- Vérifiez que les variables d'environnement sont correctement définies
-- Vérifiez les logs dans Dokploy pour les erreurs
-- Assurez-vous que le port 3333 est correctement exposé
+### Dashboards
+- [Sanity Manage](https://sanity.io/manage) - Dashboard du projet
+- [Sanity Vision](http://localhost:3333/vision) - Query tool (local)
 
-### Erreur CORS
-- Vérifiez que votre domaine est ajouté dans les CORS Origins de Sanity
-- Assurez-vous d'utiliser HTTPS
+## Historique des modifications importantes
 
-### Build échoue
-- Vérifiez que tous les fichiers nécessaires sont bien committés
-- Vérifiez les logs de build dans Dokploy
-- Assurez-vous que le Dockerfile est valide
+### 2026-02-04
+- Ajout Dockerfile multi-stage optimisé
+- Ajout .dockerignore
+- Régénération package-lock.json
+- Création DEPLOYMENT.md
+- Création CLAUDE.md (ce fichier)
 
-## Architecture du déploiement
+### Avant
+- Setup initial Sanity Studio
+- Configuration des schemas blog (post, author, category)
+- Configuration prettier et eslint
 
-Le Dockerfile utilise une stratégie de build multi-étapes :
+## TODO / Évolutions futures
 
-1. **Build stage** : Installation des dépendances et build du Studio
-2. **Production stage** : Image légère avec seulement les fichiers nécessaires à l'exécution
-
-Cela optimise :
-- La taille de l'image finale
-- Le temps de démarrage
-- La sécurité (moins de dépendances en production)
-
-## Sécurité
-
-- Les variables d'environnement contenant des secrets doivent être configurées dans Dokploy (pas dans le code)
-- Utilisez toujours HTTPS pour votre Studio en production
-- Configurez les CORS Origins de manière restrictive
-- Mettez à jour régulièrement vos dépendances
-
-## Support
-
-Pour plus d'informations :
-- Documentation Sanity : [sanity.io/docs](https://www.sanity.io/docs)
-- Documentation Dokploy : [dokploy.com/docs](https://dokploy.com/docs)
-- Communauté Sanity : [slack.sanity.io](https://slack.sanity.io)
+- [ ] Ajouter schemas e-commerce (mentionné dans index.ts)
+- [ ] Configurer prévisualisation temps réel avec le frontend
+- [ ] Ajouter des custom components pour l'éditeur de contenu
+- [ ] Configurer la validation avancée des champs
+- [ ] Documenter les schemas author et category
+- [ ] Ajouter tests (si nécessaire)
